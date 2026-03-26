@@ -44,12 +44,13 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
     GIT_TAG v0.1.36
 )
-FetchContent_MakeAvailable(glad)
-
-if(NOT TARGET glad)
-    add_library(glad STATIC ${glad_SOURCE_DIR}/src/glad.c)
-    target_include_directories(glad PUBLIC ${glad_SOURCE_DIR}/include)
+FetchContent_GetProperties(glad)
+if(NOT glad_POPULATED)
+    FetchContent_Populate(glad)
 endif()
+
+add_library(glad STATIC ${glad_SOURCE_DIR}/src/glad.c)
+target_include_directories(glad PUBLIC ${glad_SOURCE_DIR}/include)
 
 FetchContent_Declare(
     imgui
