@@ -1,6 +1,9 @@
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -19,8 +22,8 @@ namespace {
 constexpr unsigned int kWindowWidth = 1200;
 constexpr unsigned int kWindowHeight = 780;
 constexpr float kPlayerSpeed = 4.0f;
+constexpr float kVerticalSpeed = 3.0f;
 constexpr float kMaxTime = 90.0f;
-constexpr float kPlayerY = 0.35f;
 
 struct GenerationConfig {
     float spawnRatePerSecond = 2.2f;
@@ -30,6 +33,13 @@ struct GenerationConfig {
     float heightAmplitude = 0.45f;
     float heightFrequency = 0.37f;
     float colorFrequency = 0.17f;
+};
+
+struct CameraConfig {
+    float yawDeg = 0.0f;
+    float pitchDeg = 28.0f;
+    float distance = 10.0f;
+    float heightOffset = 4.5f;
 };
 
 struct Orb {
@@ -97,27 +107,22 @@ void drawCube(const glm::vec3& center, float size, const glm::vec3& color) {
     glVertex3f(x + h, y - h, z + h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x - h, y + h, z + h);
-
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x - h, y + h, z - h);
     glVertex3f(x + h, y + h, z - h);
     glVertex3f(x + h, y - h, z - h);
-
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x - h, y - h, z + h);
     glVertex3f(x - h, y + h, z + h);
     glVertex3f(x - h, y + h, z - h);
-
     glVertex3f(x + h, y - h, z - h);
     glVertex3f(x + h, y + h, z - h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x + h, y - h, z + h);
-
     glVertex3f(x - h, y + h, z - h);
     glVertex3f(x - h, y + h, z + h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x + h, y + h, z - h);
-
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x + h, y - h, z - h);
     glVertex3f(x + h, y - h, z + h);
@@ -174,6 +179,13 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSwapInterval(1);
 
+    if (!gladLoadGL(glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD\n";
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return EXIT_FAILURE;
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -184,8 +196,9 @@ int main() {
     glDepthFunc(GL_LEQUAL);
 
     GenerationConfig config;
+    CameraConfig camera;
     std::vector<Orb> orbs;
-    glm::vec3 player(0.0f, kPlayerY, 0.0f);
+    glm::vec3 player(0.0f, 0.35f, 0.0f);
 
     int score = 0;
     float spawnAccumulator = 0.0f;
@@ -205,7 +218,7 @@ int main() {
         ImGui::NewFrame();
 
         ImGui::Begin("Generation Controls");
-        ImGui::Text("Tune the math in real time");
+        ImGui::Text("Tune generation + camera");
         ImGui::SliderFloat("Spawn Rate", &config.spawnRatePerSecond, 0.2f, 8.0f, "%.2f / s");
         ImGui::SliderFloat("Pickup Radius", &config.pickupRadius, 0.2f, 3.0f, "%.2f");
         ImGui::SliderFloat("Radius Scale", &config.radiusScale, 0.2f, 2.0f, "%.2f");
@@ -214,6 +227,12 @@ int main() {
         ImGui::SliderFloat("Height Freq", &config.heightFrequency, 0.05f, 1.5f, "%.2f");
         ImGui::SliderFloat("Color Freq", &config.colorFrequency, 0.05f, 0.8f, "%.2f");
 
+        ImGui::Separator();
+        ImGui::SliderFloat("Camera Yaw", &camera.yawDeg, -180.0f, 180.0f, "%.1f deg");
+        ImGui::SliderFloat("Camera Pitch", &camera.pitchDeg, 5.0f, 85.0f, "%.1f deg");
+        ImGui::SliderFloat("Camera Distance", &camera.distance, 3.0f, 22.0f, "%.1f");
+        ImGui::SliderFloat("Camera Height", &camera.heightOffset, 0.0f, 12.0f, "%.1f");
+
         if (ImGui::Button("Clear Orbs")) {
             orbs.clear();
             score = 0;
@@ -221,9 +240,10 @@ int main() {
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset Player")) {
-            player = glm::vec3(0.0f, kPlayerY, 0.0f);
+            player = glm::vec3(0.0f, 0.35f, 0.0f);
         }
 
+        ImGui::Text("Move: WASD/Arrows, Up: Space, Down: Left Shift, Camera: Q/E + R/F");
         ImGui::Text("Orbs: %d", static_cast<int>(orbs.size()));
         ImGui::Text("Collected: %d", score);
         ImGui::End();
@@ -245,13 +265,39 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
             move.x += 1.0f;
         }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            move.y += 1.0f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+            move.y -= 1.0f;
+        }
 
         if (glm::length(move) > 0.001f) {
-            player += glm::normalize(move) * kPlayerSpeed * dt;
+            glm::vec3 horizontal(move.x, 0.0f, move.z);
+            if (glm::length(horizontal) > 0.001f) {
+                horizontal = glm::normalize(horizontal) * kPlayerSpeed * dt;
+                player.x += horizontal.x;
+                player.z += horizontal.z;
+            }
+            player.y += move.y * kVerticalSpeed * dt;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+            camera.yawDeg -= 65.0f * dt;
+        }
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+            camera.yawDeg += 65.0f * dt;
+        }
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            camera.pitchDeg = std::min(85.0f, camera.pitchDeg + 45.0f * dt);
+        }
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+            camera.pitchDeg = std::max(5.0f, camera.pitchDeg - 45.0f * dt);
         }
 
         player.x = std::clamp(player.x, -15.0f, 15.0f);
         player.z = std::clamp(player.z, -15.0f, 15.0f);
+        player.y = std::clamp(player.y, 0.2f, 8.0f);
 
         spawnAccumulator += dt * config.spawnRatePerSecond;
         while (spawnAccumulator >= 1.0f) {
@@ -276,12 +322,19 @@ int main() {
         glLoadIdentity();
         setPerspective(60.0f, static_cast<float>(gProjection.width) / static_cast<float>(gProjection.height), 0.1f, 120.0f);
 
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+        const float yawRad = glm::radians(camera.yawDeg);
+        const float pitchRad = glm::radians(camera.pitchDeg);
+        const glm::vec3 forward(
+            std::sin(yawRad) * std::cos(pitchRad),
+            -std::sin(pitchRad),
+            -std::cos(yawRad) * std::cos(pitchRad));
 
-        const float cameraDistance = 9.5f;
-        const glm::vec3 eye = player + glm::vec3(0.0f, 6.5f, cameraDistance);
-        glTranslatef(-eye.x, -eye.y, -eye.z);
+        const glm::vec3 cameraTarget = player + glm::vec3(0.0f, camera.heightOffset * 0.2f, 0.0f);
+        const glm::vec3 eye = cameraTarget - forward * camera.distance + glm::vec3(0.0f, camera.heightOffset, 0.0f);
+        const glm::mat4 view = glm::lookAt(eye, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf(glm::value_ptr(view));
 
         drawGround(20.0f, 20);
         for (const Orb& orb : orbs) {
@@ -295,7 +348,6 @@ int main() {
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwSetWindowTitle(window, buildHudText(score, static_cast<int>(orbs.size()), elapsed).c_str());
-
         if (elapsed >= kMaxTime) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }

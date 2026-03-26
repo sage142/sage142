@@ -40,6 +40,15 @@ if(NOT TARGET glm::glm)
 endif()
 
 FetchContent_Declare(
+    glad
+    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+    GIT_TAG v2.0.8
+)
+FetchContent_MakeAvailable(glad)
+
+glad_add_library(glad REPRODUCIBLE API gl:compatibility=2.1)
+
+FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG v1.91.9b
@@ -69,6 +78,7 @@ target_link_libraries(math_generation_game
     PRIVATE
         OpenGL::GL
         glfw
+        glad
         glm::glm
         imgui
 )

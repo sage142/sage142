@@ -14,15 +14,18 @@ This game is about **generation + math**:
 
 - **GLFW** (window/input)
 - **GLM** (math utilities)
-- **Dear ImGui** (live generation controls)
-
-> Note: this version intentionally avoids GLEW and uses an OpenGL 2.1 compatibility path.
+- **GLAD** (OpenGL function loading)
+- **Dear ImGui** (live generation + camera controls)
 
 ## Controls
 
-- Move player on ground: `WASD` or arrow keys
+- Move on XZ: `WASD` or arrow keys
+- Go up: `Space`
+- Go down: `Left Shift`
+- Rotate camera yaw: `Q` / `E`
+- Rotate camera pitch: `R` / `F`
 - Quit: `Esc`
-- Use the **Generation Controls** ImGui panel to tune spawn rate, spiral radius, pickup radius, height behavior, and color frequency in real time.
+- Use the **Generation Controls** ImGui panel to tune spawn rate, spiral radius, pickup radius, height behavior, color frequency, and camera settings in real time.
 
 ## Build
 
