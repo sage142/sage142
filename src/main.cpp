@@ -1,4 +1,4 @@
-#include <glad/gl.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -179,7 +179,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSwapInterval(1);
 
-    if (!gladLoadGL(glfwGetProcAddress)) {
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cerr << "Failed to initialize GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();

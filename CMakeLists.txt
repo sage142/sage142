@@ -42,11 +42,14 @@ endif()
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-    GIT_TAG v2.0.8
+    GIT_TAG v0.1.36
 )
 FetchContent_MakeAvailable(glad)
 
-glad_add_library(glad REPRODUCIBLE API gl:compatibility=2.1)
+if(NOT TARGET glad)
+    add_library(glad STATIC ${glad_SOURCE_DIR}/src/glad.c)
+    target_include_directories(glad PUBLIC ${glad_SOURCE_DIR}/include)
+endif()
 
 FetchContent_Declare(
     imgui
