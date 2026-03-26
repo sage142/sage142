@@ -6,7 +6,7 @@ A lightweight Microsoft-Paint-inspired drawing app focused only on **editing dir
 
 - C++20
 - Dear ImGui
-- SDL2
+- GLFW
 - OpenGL
 - CMake + FetchContent
 
