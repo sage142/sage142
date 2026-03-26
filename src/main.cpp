@@ -1,5 +1,6 @@
 #include "PaintApp.h"
 
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <imgui.h>
