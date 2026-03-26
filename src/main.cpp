@@ -2,6 +2,10 @@
 
 #include <glm/glm.hpp>
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl2.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -15,10 +19,18 @@ namespace {
 constexpr unsigned int kWindowWidth = 1200;
 constexpr unsigned int kWindowHeight = 780;
 constexpr float kPlayerSpeed = 4.0f;
-constexpr float kSpawnRatePerSecond = 2.2f;
-constexpr float kPickupRadius = 1.1f;
 constexpr float kMaxTime = 90.0f;
 constexpr float kPlayerY = 0.35f;
+
+struct GenerationConfig {
+    float spawnRatePerSecond = 2.2f;
+    float pickupRadius = 1.1f;
+    float radiusScale = 0.9f;
+    float heightBase = 0.55f;
+    float heightAmplitude = 0.45f;
+    float heightFrequency = 0.37f;
+    float colorFrequency = 0.17f;
+};
 
 struct Orb {
     glm::vec3 position;
@@ -52,22 +64,21 @@ std::string buildHudText(int score, int generated, float elapsed) {
     return hud.str();
 }
 
-Orb generateOrb(int index) {
+Orb generateOrb(int index, const GenerationConfig& config) {
     constexpr float goldenAngle = 2.39996323f;
-    constexpr float radiusScale = 0.9f;
 
     const float n = static_cast<float>(index + 1);
-    const float radius = radiusScale * std::sqrt(n);
+    const float radius = config.radiusScale * std::sqrt(n);
     const float theta = n * goldenAngle;
 
     glm::vec3 pos{
         radius * std::cos(theta),
-        0.55f + 0.45f * std::sin(n * 0.37f),
+        config.heightBase + config.heightAmplitude * std::sin(n * config.heightFrequency),
         radius * std::sin(theta)};
 
     glm::vec3 color{
-        0.35f + 0.35f * std::sin(n * 0.17f),
-        0.5f + 0.4f * std::cos(n * 0.11f + 1.2f),
+        0.35f + 0.35f * std::sin(n * config.colorFrequency),
+        0.5f + 0.4f * std::cos(n * (config.colorFrequency * 0.65f) + 1.2f),
         0.55f + 0.4f * std::sin(0.7f * n)};
 
     color = glm::clamp(color, glm::vec3(0.15f), glm::vec3(1.0f));
@@ -82,32 +93,31 @@ void drawCube(const glm::vec3& center, float size, const glm::vec3& color) {
 
     glColor3f(color.r, color.g, color.b);
     glBegin(GL_QUADS);
-    // Front
     glVertex3f(x - h, y - h, z + h);
     glVertex3f(x + h, y - h, z + h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x - h, y + h, z + h);
-    // Back
+
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x - h, y + h, z - h);
     glVertex3f(x + h, y + h, z - h);
     glVertex3f(x + h, y - h, z - h);
-    // Left
+
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x - h, y - h, z + h);
     glVertex3f(x - h, y + h, z + h);
     glVertex3f(x - h, y + h, z - h);
-    // Right
+
     glVertex3f(x + h, y - h, z - h);
     glVertex3f(x + h, y + h, z - h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x + h, y - h, z + h);
-    // Top
+
     glVertex3f(x - h, y + h, z - h);
     glVertex3f(x - h, y + h, z + h);
     glVertex3f(x + h, y + h, z + h);
     glVertex3f(x + h, y + h, z - h);
-    // Bottom
+
     glVertex3f(x - h, y - h, z - h);
     glVertex3f(x + h, y - h, z - h);
     glVertex3f(x + h, y - h, z + h);
@@ -164,13 +174,20 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSwapInterval(1);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL2_Init();
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
+    GenerationConfig config;
     std::vector<Orb> orbs;
     glm::vec3 player(0.0f, kPlayerY, 0.0f);
-    int score = 0;
 
+    int score = 0;
     float spawnAccumulator = 0.0f;
     float elapsed = 0.0f;
     float lastFrame = static_cast<float>(glfwGetTime());
@@ -180,6 +197,36 @@ int main() {
         const float dt = now - lastFrame;
         lastFrame = now;
         elapsed += dt;
+
+        glfwPollEvents();
+
+        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Generation Controls");
+        ImGui::Text("Tune the math in real time");
+        ImGui::SliderFloat("Spawn Rate", &config.spawnRatePerSecond, 0.2f, 8.0f, "%.2f / s");
+        ImGui::SliderFloat("Pickup Radius", &config.pickupRadius, 0.2f, 3.0f, "%.2f");
+        ImGui::SliderFloat("Radius Scale", &config.radiusScale, 0.2f, 2.0f, "%.2f");
+        ImGui::SliderFloat("Height Base", &config.heightBase, 0.1f, 2.5f, "%.2f");
+        ImGui::SliderFloat("Height Amp", &config.heightAmplitude, 0.0f, 2.0f, "%.2f");
+        ImGui::SliderFloat("Height Freq", &config.heightFrequency, 0.05f, 1.5f, "%.2f");
+        ImGui::SliderFloat("Color Freq", &config.colorFrequency, 0.05f, 0.8f, "%.2f");
+
+        if (ImGui::Button("Clear Orbs")) {
+            orbs.clear();
+            score = 0;
+            spawnAccumulator = 0.0f;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset Player")) {
+            player = glm::vec3(0.0f, kPlayerY, 0.0f);
+        }
+
+        ImGui::Text("Orbs: %d", static_cast<int>(orbs.size()));
+        ImGui::Text("Collected: %d", score);
+        ImGui::End();
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -206,9 +253,9 @@ int main() {
         player.x = std::clamp(player.x, -15.0f, 15.0f);
         player.z = std::clamp(player.z, -15.0f, 15.0f);
 
-        spawnAccumulator += dt * kSpawnRatePerSecond;
+        spawnAccumulator += dt * config.spawnRatePerSecond;
         while (spawnAccumulator >= 1.0f) {
-            orbs.push_back(generateOrb(static_cast<int>(orbs.size())));
+            orbs.push_back(generateOrb(static_cast<int>(orbs.size()), config));
             spawnAccumulator -= 1.0f;
         }
 
@@ -216,7 +263,7 @@ int main() {
             if (orb.collected) {
                 continue;
             }
-            if (glm::distance(player, orb.position) <= kPickupRadius) {
+            if (glm::distance(player, orb.position) <= config.pickupRadius) {
                 orb.collected = true;
                 score += 1;
             }
@@ -237,14 +284,15 @@ int main() {
         glTranslatef(-eye.x, -eye.y, -eye.z);
 
         drawGround(20.0f, 20);
-
         for (const Orb& orb : orbs) {
             if (!orb.collected) {
                 drawCube(orb.position, 0.6f, orb.color);
             }
         }
-
         drawCube(player, 0.8f, glm::vec3(0.98f, 0.95f, 0.88f));
+
+        ImGui::Render();
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwSetWindowTitle(window, buildHudText(score, static_cast<int>(orbs.size()), elapsed).c_str());
 
@@ -253,10 +301,13 @@ int main() {
         }
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     std::cout << "Final score: " << score << "\n";
+
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();

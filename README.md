@@ -14,6 +14,7 @@ This game is about **generation + math**:
 
 - **GLFW** (window/input)
 - **GLM** (math utilities)
+- **Dear ImGui** (live generation controls)
 
 > Note: this version intentionally avoids GLEW and uses an OpenGL 2.1 compatibility path.
 
@@ -21,6 +22,7 @@ This game is about **generation + math**:
 
 - Move player on ground: `WASD` or arrow keys
 - Quit: `Esc`
+- Use the **Generation Controls** ImGui panel to tune spawn rate, spiral radius, pickup radius, height behavior, and color frequency in real time.
 
 ## Build
 
