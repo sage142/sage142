@@ -39,18 +39,15 @@ if(NOT TARGET glm::glm)
     FetchContent_MakeAvailable(glm)
 endif()
 
-FetchContent_Declare(
-    glad
-    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-    GIT_TAG v0.1.36
-)
-FetchContent_GetProperties(glad)
-if(NOT glad_POPULATED)
-    FetchContent_Populate(glad)
+find_package(glad CONFIG QUIET)
+set(GLAD_TARGET "")
+if(TARGET glad::glad)
+    set(GLAD_TARGET glad::glad)
+elseif(TARGET glad)
+    set(GLAD_TARGET glad)
+else()
+    message(WARNING "GLAD package not found. Building without GLAD loader. Install glad (e.g. vcpkg install glad) to enable it.")
 endif()
-
-add_library(glad STATIC ${glad_SOURCE_DIR}/src/glad.c)
-target_include_directories(glad PUBLIC ${glad_SOURCE_DIR}/include)
 
 FetchContent_Declare(
     imgui
@@ -82,10 +79,16 @@ target_link_libraries(math_generation_game
     PRIVATE
         OpenGL::GL
         glfw
-        glad
         glm::glm
         imgui
 )
+
+if(GLAD_TARGET)
+    target_link_libraries(math_generation_game PRIVATE ${GLAD_TARGET})
+    target_compile_definitions(math_generation_game PRIVATE MATH_GAME_USE_GLAD=1)
+else()
+    target_compile_definitions(math_generation_game PRIVATE MATH_GAME_USE_GLAD=0)
+endif()
 
 if (MSVC)
     target_compile_options(math_generation_game PRIVATE /W4)

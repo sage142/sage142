@@ -1,4 +1,6 @@
+#if MATH_GAME_USE_GLAD
 #include <glad/glad.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -179,12 +181,14 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     glfwSwapInterval(1);
 
+#if MATH_GAME_USE_GLAD
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cerr << "Failed to initialize GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return EXIT_FAILURE;
     }
+#endif
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

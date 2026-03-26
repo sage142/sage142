@@ -14,7 +14,7 @@ This game is about **generation + math**:
 
 - **GLFW** (window/input)
 - **GLM** (math utilities)
-- **GLAD** (OpenGL function loading)
+- **GLAD** (OpenGL function loading, used when available as a system package)
 - **Dear ImGui** (live generation + camera controls)
 
 ## Controls
@@ -26,6 +26,14 @@ This game is about **generation + math**:
 - Rotate camera pitch: `R` / `F`
 - Quit: `Esc`
 - Use the **Generation Controls** ImGui panel to tune spawn rate, spiral radius, pickup radius, height behavior, color frequency, and camera settings in real time.
+
+
+If GLAD is not found on your system, the project now still builds and runs using GLFW/OpenGL entry points.
+To force GLAD usage, install it first (example with vcpkg):
+
+```bash
+vcpkg install glad
+```
 
 ## Build
 
