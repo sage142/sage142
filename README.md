@@ -13,8 +13,9 @@ This game is about **generation + math**:
 ## Libraries used
 
 - **GLFW** (window/input)
-- **GLEW** (OpenGL function loading)
 - **GLM** (math utilities)
+
+> Note: this version intentionally avoids GLEW and uses an OpenGL 2.1 compatibility path.
 
 ## Controls
 
@@ -40,7 +41,7 @@ Collect as many generated orbs as possible before the 90 second timer ends.
 
 If CMake cannot find `glfw3Config.cmake`, it means GLFW is not installed as a CMake package on your machine.
 
-This project now includes a fallback: if `glfw3`, `GLEW`, or `glm` are not found locally, CMake automatically downloads and builds them with `FetchContent`.
+This project includes a fallback: if `glfw3` or `glm` are not found locally, CMake automatically downloads and builds them with `FetchContent`.
 
 If you still prefer local packages (for example through vcpkg), configure with:
 
