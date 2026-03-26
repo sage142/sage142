@@ -1,14 +1,14 @@
-# Math Generation Garden (C++ / OpenGL)
+# Math Generation Garden (C++ / OpenGL, 3D)
 
-A tiny arcade game where you move through a mathematically generated garden of orbs.
+A small **3D** arcade game where you navigate a ground plane and collect mathematically generated cubes.
 
 ## Theme
 
 This game is about **generation + math**:
 
-- New collectibles are generated over time.
-- Their coordinates follow a **sunflower spiral** (polar equation with the golden angle).
-- Colors are generated with trigonometric waves.
+- New collectibles are generated continuously over time.
+- Their 3D coordinates follow a **sunflower spiral** in XZ space using the golden angle.
+- Heights and colors are generated with trigonometric functions.
 
 ## Libraries used
 
@@ -19,7 +19,7 @@ This game is about **generation + math**:
 
 ## Controls
 
-- Move: `WASD` or arrow keys
+- Move player on ground: `WASD` or arrow keys
 - Quit: `Esc`
 
 ## Build
@@ -35,7 +35,7 @@ cmake --build build
 ./build/math_generation_game
 ```
 
-Collect as many generated orbs as possible before the 90 second timer ends.
+Collect as many generated cubes as possible before the 90-second timer ends.
 
 ## About the `glfw3Config.cmake` error on Windows
 
