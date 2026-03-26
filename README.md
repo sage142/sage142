@@ -35,3 +35,21 @@ cmake --build build
 ```
 
 Collect as many generated orbs as possible before the 90 second timer ends.
+
+## About the `glfw3Config.cmake` error on Windows
+
+If CMake cannot find `glfw3Config.cmake`, it means GLFW is not installed as a CMake package on your machine.
+
+This project now includes a fallback: if `glfw3`, `GLEW`, or `glm` are not found locally, CMake automatically downloads and builds them with `FetchContent`.
+
+If you still prefer local packages (for example through vcpkg), configure with:
+
+```bash
+cmake -S . -B build -DMATH_GAME_USE_SYSTEM_DEPS=ON
+```
+
+To always force bundled dependencies, use:
+
+```bash
+cmake -S . -B build -DMATH_GAME_USE_SYSTEM_DEPS=OFF
+```
