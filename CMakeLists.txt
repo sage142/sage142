@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenGL REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LAME lame)
+find_package(PkgConfig QUIET)
+if (PkgConfig_FOUND)
+  pkg_check_modules(LAME QUIET lame)
+endif()
 
 # Try several ways to get GLFW:
 # 1) Config package (glfw3Config.cmake)
@@ -19,7 +21,9 @@ if (NOT TARGET glfw)
 endif()
 
 if (NOT TARGET glfw)
-  pkg_check_modules(GLFW3 QUIET glfw3)
+  if (PkgConfig_FOUND)
+    pkg_check_modules(GLFW3 QUIET glfw3)
+  endif()
   if (GLFW3_FOUND)
     add_library(glfw INTERFACE IMPORTED)
     target_include_directories(glfw INTERFACE ${GLFW3_INCLUDE_DIRS})
