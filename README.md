@@ -6,7 +6,7 @@ BeatCanvas is a **beginner-friendly custom DAW prototype** built in C++ with a c
 
 - Track-based layered editing (stack clips across multiple tracks)
 - Load WAV samples
-- Transport: Play / Pause / Stop
+- Transport: Play / Pause / Stop (timeline playhead preview)
 - Clip editing tools:
   - Reverse
   - Chop at a timeline sample position
@@ -19,9 +19,10 @@ BeatCanvas is a **beginner-friendly custom DAW prototype** built in C++ with a c
 
 - GLFW
 - OpenGL
-- SDL2
 - Dear ImGui (local source checkout)
 - Optional: `libmp3lame` for MP3 export
+
+No SDL dependency is required.
 
 ## Dear ImGui setup
 

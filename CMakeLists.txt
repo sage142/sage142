@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(SDL2 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LAME lame)
 
@@ -36,7 +35,7 @@ target_link_libraries(imgui_lib PUBLIC glfw OpenGL::GL)
 
 add_executable(beat_canvas src/main.cpp)
 
-target_link_libraries(beat_canvas PRIVATE imgui_lib SDL2::SDL2)
+target_link_libraries(beat_canvas PRIVATE imgui_lib)
 
 if (LAME_FOUND)
   target_compile_definitions(beat_canvas PRIVATE DAW_HAS_LAME=1)
