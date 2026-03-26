@@ -6,9 +6,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LAME lame)
+
+# Try several ways to get GLFW:
+# 1) Config package (glfw3Config.cmake)
+# 2) CMake module package (glfw)
+# 3) pkg-config fallback
+find_package(glfw3 CONFIG QUIET)
+if (NOT TARGET glfw)
+  find_package(glfw QUIET)
+endif()
+
+if (NOT TARGET glfw)
+  pkg_check_modules(GLFW3 QUIET glfw3)
+  if (GLFW3_FOUND)
+    add_library(glfw INTERFACE IMPORTED)
+    target_include_directories(glfw INTERFACE ${GLFW3_INCLUDE_DIRS})
+    target_link_libraries(glfw INTERFACE ${GLFW3_LIBRARIES})
+    target_link_directories(glfw INTERFACE ${GLFW3_LIBRARY_DIRS})
+  else()
+    message(FATAL_ERROR "GLFW not found. Install glfw3 dev package or set CMAKE_PREFIX_PATH/glfw3_DIR.")
+  endif()
+endif()
 
 # Dear ImGui is expected as a local subfolder for offline-friendly setup.
 # Put Dear ImGui source at: third_party/imgui/
