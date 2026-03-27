@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(BEATCANVAS_FETCH_GLFW "Fetch GLFW from GitHub if not found locally" ON)
+
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig QUIET)
 if (PkgConfig_FOUND)
@@ -29,8 +31,16 @@ if (NOT TARGET glfw)
     target_include_directories(glfw INTERFACE ${GLFW3_INCLUDE_DIRS})
     target_link_libraries(glfw INTERFACE ${GLFW3_LIBRARIES})
     target_link_directories(glfw INTERFACE ${GLFW3_LIBRARY_DIRS})
+  elseif(BEATCANVAS_FETCH_GLFW)
+    include(FetchContent)
+    FetchContent_Declare(
+      glfw
+      GIT_REPOSITORY https://github.com/glfw/glfw.git
+      GIT_TAG 3.4
+    )
+    FetchContent_MakeAvailable(glfw)
   else()
-    message(FATAL_ERROR "GLFW not found. Install glfw3 dev package or set CMAKE_PREFIX_PATH/glfw3_DIR.")
+    message(FATAL_ERROR "GLFW not found. Install glfw3 dev package, set CMAKE_PREFIX_PATH/glfw3_DIR, or enable BEATCANVAS_FETCH_GLFW.")
   endif()
 endif()
 

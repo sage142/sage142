@@ -44,6 +44,7 @@ cmake --build build -j
 If CMake cannot find GLFW (`glfw3Config.cmake`), install your platform's `glfw3` development package
 or pass `-DCMAKE_PREFIX_PATH=/path/to/glfw` (or `-Dglfw3_DIR=...`) to `cmake`.
 `pkg-config` is optional and only used as a fallback when available.
+As a last resort, CMake can auto-fetch GLFW from GitHub (enabled by default via `-DBEATCANVAS_FETCH_GLFW=ON`).
 
 ## Run
 
