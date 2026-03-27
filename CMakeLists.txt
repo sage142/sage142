@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BEATCANVAS_FETCH_GLFW "Fetch GLFW from GitHub if not found locally" ON)
+option(BEATCANVAS_FETCH_IMGUI "Fetch Dear ImGui from GitHub if not found locally" ON)
 
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig QUIET)
@@ -48,7 +49,18 @@ endif()
 # Put Dear ImGui source at: third_party/imgui/
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui")
 if (NOT EXISTS "${IMGUI_DIR}/imgui.h")
-  message(FATAL_ERROR "Dear ImGui not found. Please place it in third_party/imgui")
+  if (BEATCANVAS_FETCH_IMGUI)
+    include(FetchContent)
+    FetchContent_Declare(
+      imgui
+      GIT_REPOSITORY https://github.com/ocornut/imgui.git
+      GIT_TAG v1.91.9b
+    )
+    FetchContent_MakeAvailable(imgui)
+    set(IMGUI_DIR "${imgui_SOURCE_DIR}")
+  else()
+    message(FATAL_ERROR "Dear ImGui not found. Place it in third_party/imgui or enable BEATCANVAS_FETCH_IMGUI.")
+  endif()
 endif()
 
 add_library(imgui_lib

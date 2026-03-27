@@ -19,7 +19,7 @@ BeatCanvas is a **beginner-friendly custom DAW prototype** built in C++ with a c
 
 - GLFW
 - OpenGL
-- Dear ImGui (local source checkout)
+- Dear ImGui (local source checkout, or auto-fetched)
 - Optional: `libmp3lame` for MP3 export
 
 No SDL dependency is required.
@@ -33,6 +33,7 @@ third_party/imgui/
 ```
 
 Required files include `imgui.h`, core `.cpp` files, and `backends/imgui_impl_glfw.*`, `backends/imgui_impl_opengl3.*`.
+If this folder is missing, CMake can auto-fetch Dear ImGui (enabled by default via `-DBEATCANVAS_FETCH_IMGUI=ON`).
 
 ## Build
 
@@ -45,6 +46,7 @@ If CMake cannot find GLFW (`glfw3Config.cmake`), install your platform's `glfw3`
 or pass `-DCMAKE_PREFIX_PATH=/path/to/glfw` (or `-Dglfw3_DIR=...`) to `cmake`.
 `pkg-config` is optional and only used as a fallback when available.
 As a last resort, CMake can auto-fetch GLFW from GitHub (enabled by default via `-DBEATCANVAS_FETCH_GLFW=ON`).
+Likewise, Dear ImGui can be auto-fetched with `-DBEATCANVAS_FETCH_IMGUI=ON`.
 
 ## Run
 
