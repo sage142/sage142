@@ -5,31 +5,19 @@
 namespace sage {
 
 Engine::Engine(std::unique_ptr<IRenderer> renderer,
-               std::unique_ptr<IScriptSystem> script_system,
                std::unique_ptr<IPublisher> publisher)
     : renderer_(std::move(renderer)),
-      script_system_(std::move(script_system)),
       publisher_(std::move(publisher)) {}
 
-bool Engine::initialize(const std::string& bootstrap_script_path) {
-    if (!renderer_ || !script_system_) {
-        std::cerr << "Engine not constructed with required modules.\n";
+bool Engine::initialize() {
+    if (!renderer_) {
+        std::cerr << "Engine not constructed with required renderer module.\n";
         return false;
     }
 
     if (!renderer_->initialize()) {
         std::cerr << "Renderer initialization failed.\n";
         return false;
-    }
-
-    if (!script_system_->initialize(renderer_.get())) {
-        std::cerr << "Script system initialization failed.\n";
-        renderer_->shutdown();
-        return false;
-    }
-
-    if (!script_system_->run_file(bootstrap_script_path)) {
-        std::cerr << "Bootstrap script failed: " << bootstrap_script_path << "\n";
     }
 
     initialized_ = true;
@@ -53,7 +41,6 @@ void Engine::shutdown() {
         return;
     }
 
-    script_system_->shutdown();
     renderer_->shutdown();
     initialized_ = false;
 }

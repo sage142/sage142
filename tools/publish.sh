@@ -17,7 +17,9 @@ fi
 
 mkdir -p "$DIST_DIR/$PLATFORM"
 cp "$BUILD_DIR/sage_engine" "$DIST_DIR/$PLATFORM/"
-cp -R assets "$DIST_DIR/$PLATFORM/"
+if [[ -d assets ]]; then
+  cp -R assets "$DIST_DIR/$PLATFORM/"
+fi
 
 if [[ "$CREATE_ZIP" == "1" ]]; then
   if command -v zip >/dev/null 2>&1; then

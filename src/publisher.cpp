@@ -30,14 +30,16 @@ public:
         }
 
         const fs::path assets_src = "assets";
-        const fs::path assets_dst = staging_dir / "assets";
-        fs::create_directories(assets_dst, ec);
-        fs::copy(assets_src, assets_dst,
-                 fs::copy_options::recursive | fs::copy_options::overwrite_existing,
-                 ec);
-        if (ec) {
-            std::cerr << "Failed to copy assets: " << ec.message() << "\n";
-            return false;
+        if (fs::exists(assets_src)) {
+            const fs::path assets_dst = staging_dir / "assets";
+            fs::create_directories(assets_dst, ec);
+            fs::copy(assets_src, assets_dst,
+                     fs::copy_options::recursive | fs::copy_options::overwrite_existing,
+                     ec);
+            if (ec) {
+                std::cerr << "Failed to copy assets: " << ec.message() << "\n";
+                return false;
+            }
         }
 
         if (config.create_zip) {
