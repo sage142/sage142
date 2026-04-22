@@ -16,7 +16,7 @@ A lightweight, modular C++ game engine scaffold using:
 - Lua 5.4 binding layer with a simple API (`log`, `set_clear_color`)
 - Main loop with fixed startup/shutdown ordering
 - Publish tool that builds, stages runtime files, and optionally creates a zip archive
-- CMake project with sensible defaults and options
+- CMake project with sensible defaults, optional auto-fetch of dependencies, and build options
 
 ## Project Layout
 
@@ -59,6 +59,12 @@ A lightweight, modular C++ game engine scaffold using:
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
+```
+
+If `glfw3` is not installed on your machine, CMake will automatically fetch GLFW when `SAGE_FETCH_DEPS=ON` (default).
+
+```bash
+cmake -S . -B build -DSAGE_FETCH_DEPS=ON
 ```
 
 ### Run
@@ -113,3 +119,10 @@ set_clear_color(0.08, 0.09, 0.12, 1.0)
 
 The renderer initializes Dear ImGui and shows both a small `Sage Debug Panel` and the ImGui demo window by default.
 Use `-DSAGE_ENABLE_IMGUI=OFF` at configure time if you want a minimal runtime without UI overlays.
+
+
+## Troubleshooting
+
+- **glfw3 not found**: keep `SAGE_FETCH_DEPS=ON` (default) to auto-download GLFW, or install GLFW and set `glfw3_DIR`.
+- **OpenGL not found**: install graphics/OpenGL development libraries for your platform.
+- **Lua not found**: install Lua 5.4 development package and retry configure.

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(sage_engine VERSION 0.2.0 LANGUAGES CXX)
+project(sage_engine VERSION 0.2.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -7,10 +7,38 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(SAGE_ENABLE_WARNINGS "Enable strict compiler warnings" ON)
 option(SAGE_ENABLE_IMGUI "Enable Dear ImGui debug UI" ON)
+option(SAGE_FETCH_DEPS "Fetch missing third-party dependencies automatically" ON)
+
+include(FetchContent)
 
 find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
 find_package(Lua 5.4 REQUIRED)
+
+set(SAGE_GLFW_TARGET "")
+find_package(glfw3 QUIET)
+if(TARGET glfw)
+    set(SAGE_GLFW_TARGET glfw)
+elseif(TARGET glfw3::glfw)
+    set(SAGE_GLFW_TARGET glfw3::glfw)
+elseif(SAGE_FETCH_DEPS)
+    message(STATUS "glfw3 not found; fetching GLFW from source")
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4
+    )
+    FetchContent_MakeAvailable(glfw)
+    set(SAGE_GLFW_TARGET glfw)
+else()
+    message(FATAL_ERROR
+        "glfw3 was not found. Install glfw3 (dev package), set glfw3_DIR/CMAKE_PREFIX_PATH, "
+        "or enable SAGE_FETCH_DEPS to fetch it automatically.")
+endif()
 
 add_executable(sage_engine
     src/main.cpp
@@ -29,13 +57,11 @@ target_include_directories(sage_engine
 target_link_libraries(sage_engine
     PRIVATE
         OpenGL::GL
-        glfw
+        ${SAGE_GLFW_TARGET}
         ${LUA_LIBRARIES}
 )
 
 if(SAGE_ENABLE_IMGUI)
-    include(FetchContent)
-
     FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui.git
