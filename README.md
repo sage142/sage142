@@ -5,13 +5,14 @@ A lightweight, modular C++ game engine scaffold using:
 - **OpenGL** for rendering
 - **Lua 5.4** for gameplay scripting
 - A configurable **One-Click Publish** pipeline
+- **Dear ImGui** runtime debug tooling
 
 > This is a production-ready starting point focused on maintainable architecture and clear extension points.
 
 ## Features
 
 - Modular subsystem interfaces (`IRenderer`, `IScriptSystem`, `IPublisher`)
-- GLFW + GLAD based OpenGL context
+- GLFW based OpenGL context with Dear ImGui debug UI
 - Lua 5.4 binding layer with a simple API (`log`, `set_clear_color`)
 - Main loop with fixed startup/shutdown ordering
 - Publish tool that builds, stages runtime files, and optionally creates a zip archive
@@ -50,6 +51,7 @@ A lightweight, modular C++ game engine scaffold using:
 - OpenGL development package
 - GLFW 3.3+
 - Lua 5.4 development package
+- Git (for CMake FetchContent to download Dear ImGui)
 - (Optional) `zip` CLI for archive output
 
 ### Configure and build
@@ -105,3 +107,9 @@ set_clear_color(0.08, 0.09, 0.12, 1.0)
 - Add asset pipeline + hot reload module
 - Add editor tooling through ImGui module
 - Expand publish profiles for Steam/itch.io packaging
+
+
+## ImGui
+
+The renderer initializes Dear ImGui and shows both a small `Sage Debug Panel` and the ImGui demo window by default.
+Use `-DSAGE_ENABLE_IMGUI=OFF` at configure time if you want a minimal runtime without UI overlays.

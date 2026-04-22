@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
-project(sage_engine VERSION 0.1.0 LANGUAGES CXX)
+project(sage_engine VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(SAGE_ENABLE_WARNINGS "Enable strict compiler warnings" ON)
+option(SAGE_ENABLE_IMGUI "Enable Dear ImGui debug UI" ON)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -31,6 +32,36 @@ target_link_libraries(sage_engine
         glfw
         ${LUA_LIBRARIES}
 )
+
+if(SAGE_ENABLE_IMGUI)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.92.2b
+    )
+    FetchContent_MakeAvailable(imgui)
+
+    target_sources(sage_engine PRIVATE
+        ${imgui_SOURCE_DIR}/imgui.cpp
+        ${imgui_SOURCE_DIR}/imgui_draw.cpp
+        ${imgui_SOURCE_DIR}/imgui_tables.cpp
+        ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+        ${imgui_SOURCE_DIR}/imgui_demo.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl2.cpp
+    )
+
+    target_include_directories(sage_engine PRIVATE
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+    )
+
+    target_compile_definitions(sage_engine PRIVATE SAGE_ENABLE_IMGUI=1)
+else()
+    target_compile_definitions(sage_engine PRIVATE SAGE_ENABLE_IMGUI=0)
+endif()
 
 if(SAGE_ENABLE_WARNINGS)
     if(MSVC)
