@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(sage_engine VERSION 0.3.0 LANGUAGES CXX)
+project(sage_engine VERSION 0.4.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,6 +39,29 @@ else()
         "or enable SAGE_FETCH_DEPS to fetch it automatically.")
 endif()
 
+set(SAGE_GLAD_TARGET "")
+find_package(glad QUIET)
+if(TARGET glad::glad)
+    set(SAGE_GLAD_TARGET glad::glad)
+elseif(TARGET glad)
+    set(SAGE_GLAD_TARGET glad)
+elseif(SAGE_FETCH_DEPS)
+    message(STATUS "glad not found; fetching glad from source")
+    FetchContent_Declare(
+        glad
+        GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+        GIT_TAG v2.0.8
+    )
+    FetchContent_MakeAvailable(glad)
+
+    glad_add_library(glad_gl_core_33 REPRODUCIBLE API gl:core=3.3)
+    set(SAGE_GLAD_TARGET glad_gl_core_33)
+else()
+    message(FATAL_ERROR
+        "glad was not found. Install glad, set glad_DIR/CMAKE_PREFIX_PATH, "
+        "or enable SAGE_FETCH_DEPS to fetch it automatically.")
+endif()
+
 add_executable(sage_engine
     src/main.cpp
     src/engine.cpp
@@ -55,6 +78,7 @@ target_link_libraries(sage_engine
     PRIVATE
         OpenGL::GL
         ${SAGE_GLFW_TARGET}
+        ${SAGE_GLAD_TARGET}
 )
 
 if(SAGE_ENABLE_IMGUI)
@@ -72,7 +96,7 @@ if(SAGE_ENABLE_IMGUI)
         ${imgui_SOURCE_DIR}/imgui_widgets.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl2.cpp
+        ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     )
 
     target_include_directories(sage_engine PRIVATE

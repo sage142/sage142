@@ -1,11 +1,12 @@
 #include "sage/modules.hpp"
 
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #if SAGE_ENABLE_IMGUI
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl2.h>
+#include <imgui_impl_opengl3.h>
 #endif
 
 #include <array>
@@ -23,6 +24,10 @@ public:
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if defined(__APPLE__)
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
         window_ = glfwCreateWindow(1280, 720, "Sage Engine", nullptr, nullptr);
         if (!window_) {
@@ -34,12 +39,17 @@ public:
         glfwMakeContextCurrent(window_);
         glfwSwapInterval(1);
 
+        if (!gladLoadGL(glfwGetProcAddress)) {
+            std::cerr << "Failed to load OpenGL functions via GLAD.\n";
+            return false;
+        }
+
 #if SAGE_ENABLE_IMGUI
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
         ImGui_ImplGlfw_InitForOpenGL(window_, true);
-        ImGui_ImplOpenGL2_Init();
+        ImGui_ImplOpenGL3_Init("#version 330");
 #endif
 
         return true;
@@ -54,7 +64,7 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #if SAGE_ENABLE_IMGUI
-        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         draw_debug_ui();
@@ -64,7 +74,7 @@ public:
     void end_frame() override {
 #if SAGE_ENABLE_IMGUI
         ImGui::Render();
-        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
         glfwSwapBuffers(window_);
         glfwPollEvents();
@@ -72,7 +82,7 @@ public:
 
     void shutdown() override {
 #if SAGE_ENABLE_IMGUI
-        ImGui_ImplOpenGL2_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
 #endif
@@ -96,7 +106,7 @@ private:
 #if SAGE_ENABLE_IMGUI
     void draw_debug_ui() {
         ImGui::Begin("Sage Debug Panel");
-        ImGui::Text("Renderer: OpenGL + GLFW");
+        ImGui::Text("Renderer: OpenGL (GLFW + GLAD)");
         ImGui::ColorEdit4("Clear Color", clear_color_.data());
         ImGui::Text("Press ESC or close window to quit.");
         ImGui::End();
